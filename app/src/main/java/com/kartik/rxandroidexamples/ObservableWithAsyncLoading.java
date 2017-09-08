@@ -1,20 +1,27 @@
 package com.kartik.rxandroidexamples;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.disposables.Disposable;
+import rx.Observable;
+import rx.Observer;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class ObservableWithAsyncLoading extends AppCompatActivity implements View.OnClickListener {
 
@@ -25,7 +32,7 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 	private TextView searchResult;
 	private Observable mObservable;
 	private String resultText;
-	private Observer<List<String>> mObserver;
+	private Subscription subscription;
 /* -------------------------------------- Lifecycle Methods -------------------------------------- */
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
@@ -36,7 +43,7 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 		searchEditText = (EditText) findViewById(R.id.searchEditText);
 		searchButton = (Button) findViewById(R.id.searchButton);
 		nextButton = (Button) findViewById(R.id.nextButton);
-
+		nextButton.setOnClickListener(this);
 		searchResult = (TextView) findViewById(R.id.searchResult);
 		searchButton.setOnClickListener(this);
 	}
@@ -47,40 +54,44 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 	public void onClick (final View view) {
 		switch (view.getId()){
 			case R.id.searchButton:
+				final ProgressDialog progressDialog = new ProgressDialog(this);
+				progressDialog.setTitle("Loading");
+				progressDialog.show();
+				resultText = "";
 
-				mObservable = Observable.just(getColors(searchEditText.getText().toString()));
-
-				mObservable.subscribe(new Observer() {
+				mObservable = Observable.fromCallable(new Callable<List<String>>() {
 					@Override
-					public void onSubscribe (@NonNull final Disposable d) {
-						resultText = "";
-						resultText += "Subscribed to the Observable\n";
-					}
-
-
-
-					@Override
-					public void onNext (@NonNull final Object o) {
-
-						resultText += o.toString() + "\n";
-					}
-
-
-
-					@Override
-					public void onError (@NonNull final Throwable e) {
-					}
-
-
-
-					@Override
-					public void onComplete () {
-						resultText += "Completed";
+					public List<String> call() {
+						return getColors(searchEditText.getText().toString());
 					}
 				});
 
-				searchResult.setText(resultText);
-			break;
+				subscription = mObservable
+						.subscribeOn(Schedulers.io())
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribe(
+								new Observer<List<String>>() {
+									@Override
+									public void onCompleted() {
+										resultText += "Completed";
+										searchResult.setText(resultText);
+										progressDialog.dismiss();
+									}
+
+									@Override
+									public void onError(Throwable e) {
+
+									}
+
+									@Override
+									public void onNext(List<String> strings) {
+										resultText = "";
+										resultText += "Subscribed to the Observable\n";
+										resultText += strings.toString() + "\n";
+									}
+								});
+
+				break;
 			case R.id.nextButton:
 				Intent intent = new Intent(this, ObservableWithAsyncLoading.class);
 				startActivity(intent);
@@ -105,4 +116,12 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 	}
 
 
+
+	@Override
+	protected void onDestroy () {
+		super.onDestroy();
+		if (subscription!= null && subscription.isUnsubscribed()){
+			subscription.unsubscribe();
+		}
+	}
 }
