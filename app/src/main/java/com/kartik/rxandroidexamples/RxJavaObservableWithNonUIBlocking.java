@@ -15,18 +15,15 @@ import model.AnswerData;
 import model.AnswerItem;
 import network.RetrofitInstance;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 //RxJava2
 //import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.GET;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /*
-* Example using RxJava Observable and Retrofit2.
+* Example using RxJava Observable and Retrofit2. Using Subscriber with 3 callbacks (onCompleted, onError, onNext).
 * */
 public class RxJavaObservableWithNonUIBlocking extends AppCompatActivity implements View.OnClickListener {
 
@@ -76,7 +73,7 @@ public class RxJavaObservableWithNonUIBlocking extends AppCompatActivity impleme
 				disposable = observable.subscribeOn(Schedulers.io())
 						.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(searchResponse -> {
-					for (AnswerItem s : searchResponse.getFlickerImageItems()) {
+					for (AnswerItem s : searchResponse.getItems()) {
 
 						if (s.getOwner().getDisplayName().contains(searchEditText.getText().toString())){
 							resultText += s.getOwner().getDisplayName() + "\n";
@@ -109,7 +106,7 @@ public class RxJavaObservableWithNonUIBlocking extends AppCompatActivity impleme
 							@Override
 							public void onNext (final AnswerData answerData) {
 								resultText = "";
-								for (AnswerItem s : answerData.getFlickerImageItems()) {
+								for (AnswerItem s : answerData.getItems()) {
 
 									if (s.getOwner().getDisplayName().contains(searchEditText.getText().toString())){
 										resultText += s.getOwner().getDisplayName() + "\n";

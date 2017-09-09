@@ -24,11 +24,11 @@ public class AnswerData {
 	@Expose
 	private Integer quotaRemaining;
 
-	public List<AnswerItem> getFlickerImageItems() {
+	public List<AnswerItem> getItems () {
 		return items;
 	}
 
-	public void setFlickerImageItems(List<AnswerItem> items) {
+	public void setItems(List<AnswerItem> items) {
 		this.items = items;
 	}
 
