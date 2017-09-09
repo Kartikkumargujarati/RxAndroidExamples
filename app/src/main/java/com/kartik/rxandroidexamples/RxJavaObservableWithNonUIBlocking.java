@@ -13,6 +13,7 @@ import android.widget.TextView;
 //import io.reactivex.android.schedulers.AndroidSchedulers;
 import model.AnswerData;
 import model.AnswerItem;
+import network.RetrofitInstance;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 //RxJava2
@@ -86,8 +87,7 @@ public class RxJavaObservableWithNonUIBlocking extends AppCompatActivity impleme
 				}, throwable -> searchResult.setText(throwable.toString()));*/
 
 
-				Observable<AnswerData> observable =  getClient(BASE_URL).create(StackExchangeEndpointInterface.class).getRecentAnswers();
-
+				Observable<AnswerData> observable = new RetrofitInstance().getRetrofit().create(RetrofitInstance.StackExchangeEndpointInterface.class).getRecentAnswers();
 				observable.subscribeOn(Schedulers.io())
 						.observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<AnswerData>() {
 							@Override
@@ -125,19 +125,6 @@ public class RxJavaObservableWithNonUIBlocking extends AppCompatActivity impleme
 		}
 	}
 
-
-	public static Retrofit getClient(String baseUrl) {
-			retrofit = new Retrofit.Builder()
-
-					//RxJava2
-					//.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-					.addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-					.addConverterFactory(GsonConverterFactory.create())
-					.baseUrl(baseUrl)
-					.build();
-		return retrofit;
-	}
-
 	@Override
 	protected void onDestroy () {
 		super.onDestroy();
@@ -148,9 +135,4 @@ public class RxJavaObservableWithNonUIBlocking extends AppCompatActivity impleme
 		}*/
 	}
 
-
-	public interface StackExchangeEndpointInterface {
-		@GET("/answers?order=desc&sort=activity&site=stackoverflow")
-		Observable<AnswerData> getRecentAnswers ();
-	}
 }
