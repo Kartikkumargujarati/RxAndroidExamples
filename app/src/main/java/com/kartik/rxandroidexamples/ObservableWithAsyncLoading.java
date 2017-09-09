@@ -2,26 +2,28 @@ package com.kartik.rxandroidexamples;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-
+//RxJava2
+//import io.reactivex.android.schedulers.AndroidSchedulers;
+import model.AnswerData;
+import model.AnswerItem;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+//RxJava2
+//import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.GET;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
 
 public class ObservableWithAsyncLoading extends AppCompatActivity implements View.OnClickListener {
 
@@ -30,9 +32,16 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 	private Button nextButton;
 
 	private TextView searchResult;
-	private Observable mObservable;
 	private String resultText;
-	private Subscription subscription;
+	//RxJava2
+	//private Disposable disposable;
+
+
+	private static Retrofit retrofit = null;
+
+
+	public static final String BASE_URL = "https://api.stackexchange.com/2.2/";
+
 /* -------------------------------------- Lifecycle Methods -------------------------------------- */
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
@@ -59,37 +68,55 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 				progressDialog.show();
 				resultText = "";
 
-				mObservable = Observable.fromCallable(new Callable<List<String>>() {
-					@Override
-					public List<String> call() {
-						return getColors(searchEditText.getText().toString());
-					}
-				});
-
-				subscription = mObservable
-						.subscribeOn(Schedulers.io())
+				//RxJava2
+				/*Observable<AnswerData> observable =  getClient(BASE_URL).create(StackExchangeEndpointInterface.class).getRecentAnswers();
+				disposable = observable.subscribeOn(Schedulers.io())
 						.observeOn(AndroidSchedulers.mainThread())
-						.subscribe(
-								new Observer<List<String>>() {
-									@Override
-									public void onCompleted() {
-										resultText += "Completed";
-										searchResult.setText(resultText);
-										progressDialog.dismiss();
-									}
+				.subscribe(searchResponse -> {
+					for (AnswerItem s : searchResponse.getFlickerImageItems()) {
 
-									@Override
-									public void onError(Throwable e) {
+						if (s.getOwner().getDisplayName().contains(searchEditText.getText().toString())){
+							resultText += s.getOwner().getDisplayName() + "\n";
+						}
+					}
+					searchResult.setText(resultText);
+					progressDialog.dismiss();
+				}, throwable -> searchResult.setText(throwable.toString()));*/
 
-									}
 
-									@Override
-									public void onNext(List<String> strings) {
-										resultText = "";
-										resultText += "Subscribed to the Observable\n";
-										resultText += strings.toString() + "\n";
+
+
+				Observable<AnswerData> observable =  getClient(BASE_URL).create(StackExchangeEndpointInterface.class).getRecentAnswers();
+
+				observable.subscribeOn(Schedulers.io())
+						.observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<AnswerData>() {
+							@Override
+							public void onCompleted () {
+								if (resultText.equals("")){
+									searchResult.setText("No users found..!!");
+								} else {
+									searchResult.setText(resultText);
+								}
+								progressDialog.dismiss();
+							}
+
+							@Override
+							public void onError (final Throwable e) {
+								progressDialog.dismiss();
+								searchResult.setText(e.toString());
+							}
+
+							@Override
+							public void onNext (final AnswerData answerData) {
+								resultText = "";
+								for (AnswerItem s : answerData.getFlickerImageItems()) {
+
+									if (s.getOwner().getDisplayName().contains(searchEditText.getText().toString())){
+										resultText += s.getOwner().getDisplayName() + "\n";
 									}
-								});
+								}
+							}
+						});
 
 				break;
 			case R.id.nextButton:
@@ -98,30 +125,32 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 		}
 	}
 
-	private List<String> getColors (final String s) {
-		List<String> colors = new ArrayList<>();
-		List<String> resultColors = new ArrayList<>();
 
-		for (int i = 0; i <100000; i++){
-			colors.add("blue");
-			colors.add("green");
-			colors.add("red");
-		}
-		for (String color : colors){
-			if (color.contains(s)){
-				resultColors.add(color);
-			}
-		}
-		return resultColors;
+	public static Retrofit getClient(String baseUrl) {
+			retrofit = new Retrofit.Builder()
+
+					//RxJava2
+					//.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+					.addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+					.addConverterFactory(GsonConverterFactory.create())
+					.baseUrl(baseUrl)
+					.build();
+		return retrofit;
 	}
-
-
 
 	@Override
 	protected void onDestroy () {
 		super.onDestroy();
-		if (subscription!= null && subscription.isUnsubscribed()){
-			subscription.unsubscribe();
-		}
+
+		//RxJava2
+		/*if (disposable!= null && !disposable.isDisposed()){
+			disposable.dispose();
+		}*/
+	}
+
+
+	public interface StackExchangeEndpointInterface {
+		@GET("/answers?order=desc&sort=activity&site=stackoverflow")
+		Observable<AnswerData> getRecentAnswers ();
 	}
 }

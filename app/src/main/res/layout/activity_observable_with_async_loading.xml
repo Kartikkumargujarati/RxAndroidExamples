@@ -9,7 +9,7 @@
 	<EditText
 		android:layout_width="300dp"
 		android:layout_height="wrap_content"
-		android:hint="Enter Color"
+		android:hint="Seach stackoverflow Username"
 		android:layout_marginTop="33dp"
 		android:layout_alignParentTop="true"
 		android:layout_centerHorizontal="true"
@@ -24,7 +24,7 @@
 		android:layout_marginTop="44dp"
 		android:text="Search"/>
 	<ScrollView
-		android:layout_width="wrap_content"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_below="@+id/searchButton"
 		android:layout_above="@+id/nextButton"
