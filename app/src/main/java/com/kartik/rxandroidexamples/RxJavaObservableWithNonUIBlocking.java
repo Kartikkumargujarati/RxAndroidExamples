@@ -24,8 +24,10 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-
-public class ObservableWithAsyncLoading extends AppCompatActivity implements View.OnClickListener {
+/*
+* Example using RxJava Observable and Retrofit2.
+* */
+public class RxJavaObservableWithNonUIBlocking extends AppCompatActivity implements View.OnClickListener {
 
 	private EditText searchEditText;
 	private Button searchButton;
@@ -46,8 +48,8 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_observable_with_async_loading);
-		setTitle("Async Loading");
+		setContentView(R.layout.rxjava_observable_non_ui_blocking);
+		setTitle("UI Non-Blocking");
 
 		searchEditText = (EditText) findViewById(R.id.searchEditText);
 		searchButton = (Button) findViewById(R.id.searchButton);
@@ -84,8 +86,6 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 				}, throwable -> searchResult.setText(throwable.toString()));*/
 
 
-
-
 				Observable<AnswerData> observable =  getClient(BASE_URL).create(StackExchangeEndpointInterface.class).getRecentAnswers();
 
 				observable.subscribeOn(Schedulers.io())
@@ -120,7 +120,7 @@ public class ObservableWithAsyncLoading extends AppCompatActivity implements Vie
 
 				break;
 			case R.id.nextButton:
-				Intent intent = new Intent(this, ObservableWithAsyncLoading.class);
+				Intent intent = new Intent(this, RxJavaSingle.class);
 				startActivity(intent);
 		}
 	}

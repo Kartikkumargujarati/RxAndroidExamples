@@ -14,7 +14,7 @@ import java.util.List;
 import rx.Observable;
 import rx.Observer;
 
-public class BasicObservableWithASubscription extends AppCompatActivity implements View.OnClickListener {
+public class RxJavaObservableUIBlocking extends AppCompatActivity implements View.OnClickListener {
 
 	private EditText searchEditText;
 	private Button searchButton;
@@ -28,7 +28,7 @@ public class BasicObservableWithASubscription extends AppCompatActivity implemen
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.rxjava_observable_ui_blocking);
 		setTitle("Blocking UI");
 		searchEditText = (EditText) findViewById(R.id.searchEditText);
 		searchButton = (Button) findViewById(R.id.searchButton);
@@ -70,7 +70,7 @@ public class BasicObservableWithASubscription extends AppCompatActivity implemen
 				searchResult.setText(resultText);
 				break;
 			case R.id.nextButton:
-				Intent intent = new Intent(this, ObservableWithAsyncLoading.class);
+				Intent intent = new Intent(this, RxJavaObservableWithNonUIBlocking.class);
 				startActivity(intent);
 				break;
 		}
