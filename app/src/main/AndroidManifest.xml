@@ -22,7 +22,8 @@
 			</intent-filter>
 		</activity>
 		<activity android:name=".RxJavaObservableWithNonUIBlocking" />
-		<activity android:name=".RxJavaSingle"></activity>
+		<activity android:name=".RxJavaSingle" />
+		<activity android:name=".RxJavaDebounce"></activity>
 	</application>
 
 </manifest>

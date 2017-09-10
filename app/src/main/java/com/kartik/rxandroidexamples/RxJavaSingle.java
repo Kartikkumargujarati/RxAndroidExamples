@@ -95,7 +95,7 @@ public class RxJavaSingle extends AppCompatActivity implements View.OnClickListe
 				break;
 
 			case R.id.nextButton:
-				Intent intent = new Intent(this, RxJavaSingle.class);
+				Intent intent = new Intent(this, RxJavaDebounce.class);
 				startActivity(intent);
 				break;
 		}
